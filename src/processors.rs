@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use reqwest::{Client as HttpClient, Response};
-use serde::de::Error;
 use serde_json::{json, Value};
 use urlencoding::encode;
 use crate::errors::GatewayError;
@@ -119,24 +118,23 @@ impl PaymentLinkProcessor for StripePaymentLinkProcessor {
         if request.success_url.is_none() || request.cancel_url.is_none() {
             return Err(GatewayError::InvalidRequest("Success and cancel URLs are required".to_string()));
         }
-        let params = json!({
-            "mode": "payment",
-            "line_items": [{
-                "price_data": {
-                    "currency": request.currency.as_deref().unwrap_or(""),
-                    "unit_amount": request.amount.unwrap_or(0),
-                    "product_data": {
-                        "name": request.description.as_deref().unwrap_or("")
-                    }
-                },
-                "quantity": 1
-            }],
-            "success_url": request.success_url.as_deref().unwrap_or(""),
-            "cancel_url": request.cancel_url.as_deref().unwrap_or("")
-        });
 
-        let form_data: String = serde_urlencoded::to_string(&params)
-            .map_err(|e| GatewayError::SerializationError(serde_json::Error::custom(e.to_string())))?;
+        let currency = request.currency.as_deref().unwrap_or("");
+        let amount = request.amount.unwrap_or(0);
+        let description = request.description.as_deref().unwrap_or("");
+        let success_url = request.success_url.as_deref().unwrap_or("");
+        let cancel_url = request.cancel_url.as_deref().unwrap_or("");
+
+        let form_data = format!(
+            "mode=payment&line_items[0][price_data][currency]={}&line_items[0][price_data][unit_amount]={}&line_items[0][price_data][product_data][name]={}&line_items[0][quantity]=1&success_url={}&cancel_url={}",
+            encode(currency),
+            amount,
+            encode(description),
+            encode(success_url),
+            encode(cancel_url)
+        );
+
+        log::debug!("Form data: {}", form_data);
 
         let response = self.http_client.post("https://api.stripe.com/v1/checkout/sessions")
             .header("Authorization", format!("Bearer {}", self.api_key))
@@ -177,13 +175,17 @@ impl RefundProcessor for StripeRefundProcessor {
         if request.charge_id.is_none() {
             return Err(GatewayError::InvalidRequest("Charge ID is required".to_string()));
         }
-        let params = json!({
-            "charge": request.charge_id.as_deref().unwrap_or(""),
-            "amount": request.amount.unwrap_or(0)
-        });
 
-        let form_data: String = serde_urlencoded::to_string(&params)
-            .map_err(|e| GatewayError::SerializationError(serde_json::Error::custom(e.to_string())))?;
+        let charge_id = request.charge_id.as_deref().unwrap_or("");
+        let amount = request.amount.unwrap_or(0);
+
+        let form_data = format!(
+            "charge={}&amount={}",
+            encode(charge_id),
+            amount
+        );
+
+        log::debug!("Form data: {}", form_data);
 
         let response = self.http_client.post("https://api.stripe.com/v1/refunds")
             .header("Authorization", format!("Bearer {}", self.api_key))
