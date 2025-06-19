@@ -1,0 +1,21 @@
+# Performance Comparison: Java Stripe Gateway vs Rust Stripe Gateway
+
+| Metric                | Java Stripe Gateway | Rust Stripe Gateway | Absolute Difference | Percentage Difference |
+|-----------------------|---------------------|---------------------|---------------------|-----------------------|
+| Duration              | 1386.08 ms          | 1270.10 ms          | 115.98 ms           | 8.37% faster          |
+| Billed Duration       | 1387 ms             | 1335 ms             | 52 ms               | 3.75% faster          |
+| Init Duration         | 2432.56 ms          | 64.40 ms            | 2368.16 ms          | 97.35% faster         |
+| Resources Configured  | 2048 MB             | 128 MB              | 1920 MB             | 93.75% less           |
+| Max Memory Used       | 186 MB              | 28 MB               | 158 MB              | 84.95% less           |
+
+## Summary
+
+- **Duration**: Rust is 8.37% faster (115.98 ms less) than Java, indicating a modest improvement in execution time.
+- **Billed Duration**: Rust is 3.75% faster (52 ms less), showing a slight reduction in billable time.
+- **Init Duration**: Rust is significantly faster by 97.35% (2368.16 ms less), demonstrating a dramatic improvement in initialization time.
+- **Resources Configured**: Rust uses 93.75% less memory (1920 MB less), highlighting its efficiency in resource allocation.
+- **Max Memory Used**: Rust consumes 84.95% less memory (158 MB less), further emphasizing its memory efficiency.
+
+## Reference
+- **Java Stripe Gateway**: https://github.com/n1colasgtz/StripeGateway
+- **Rust Stripe Gateway**: https://github.com/n1colasgtz/RustStripeGateway
